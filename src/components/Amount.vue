@@ -1,29 +1,22 @@
 <template>
   <div class="container">
     <form>
-      <div class="field has-addons has-addons-centered">
+      <div class="field">
         <p class="control is-expanded">
-          <input class="input col-is-4" type="text" v-model="amount" :placeholder="amountLabel"/>
+          <input class="input col-is-4"
+                 type="text"
+                 v-model="amount"
+                 v-bind:class="{'is-danger' : (firstSubmit && emptyAmount)}"
+                 :placeholder="amountLabel"
+                 v-on:keyup.enter="validateAmount"
+          />
         </p>
-        <p class="control">
-          <a class="button is-success" @click.prevent="convert">Convert</a>
-        </p>
+        <p class="help is-danger" v-if="(firstSubmit && emptyAmount)">This input is invalid</p>
+        <!--<p class="help is-danger" v-if="(firstSubmit && emptyAmount) || (firstSubmit && faultyPattern)">This input is invalid</p>-->
       </div>
-      <!--<div class="columns is-mobile">
-      <div class="column is-three-quarters field ">
-        <div class="control">
-          <input class="input col-is-4" type="text" v-model="amount" :placeholder="amountLabel"/>
-        </div>
-      </div>
-      <div class="column field">
-        <div class="control">
-          <button class="button is-success" @click.prevent="convert">Convert</button>
-        </div>
-      </div>
-      </div>-->
     </form>
-    <div class="">Converting {{amount*100}} to pennies</div>
-    <display-panel v-if="amount"></display-panel>
+    <div class="">Converting {{pennies}} pennies to coins</div>
+    <display-panel :amount="amount"></display-panel>
   </div>
 </template>
 
@@ -34,19 +27,47 @@
     name: 'amount',
     data() {
       return {
+        pennies: '',
         amount: '',
+        firstSubmit: false,
         amountLabel: 'Enter monetary value for coin conversion',
       };
+    },
+    computed: {
+      /* Check for empty string */
+      emptyAmount() {
+        return this.amount === '';
+      },
+      /* Check for £decimalp format */
+      faultyPattern() {
+        const pattern = '^[£]?[1-9]\d*(\.?\d+)?[p]?'; //eslint-disable-line
+        const expression = new RegExp(pattern);
+        return (expression.test(this.amount));
+      },
     },
     components: {
       'display-panel': DisplayPanel,
     },
     methods: {
-      convert() {
+      validateAmount() {
+        this.$data.firstSubmit = true;
 
+        if (this.emptyAmount || this.faultyPattern) {
+         /* event.preventDefault(); */
+        }
+        /* /!* Look for £ sign and remove it *!/
+        if (this.$data.amount.indexOf('£') !== -1) {
+          this.$data.amount = this.$data.amount.replace('/£', '');
+        }
+        /!* Look for p sign and remove it *!/
+        if (this.$data.amount.indexOf('p') !== -1) {
+          this.$data.amount = this.$data.amount.replace('/p', '');
+        } */
+        /* Replace all non numeric and . values */
+        this.$data.amount = this.$data.amount.replace(/[^0-9-.]/g, '');
+        this.$data.pennies = Math.round(Number(this.$data.amount * 100).toFixed(2));
       },
     },
-
   };
 </script>
 
